@@ -1,7 +1,8 @@
 // gd-demo-8-mesh is step 8 of the git-deploy demo: mesh exposures. One small
 // application in two roles. Every instance answers /orders and /admin, and
 // says which workload called it. With ORDERS_URL set, its page also calls
-// that orders service and shows what each call got back.
+// that orders service and shows what each call got back; with EXTERNAL_URL
+// set, it also calls that address outside the cluster.
 package main
 
 import (
@@ -20,6 +21,7 @@ const version = "v1"
 func main() {
 	log.Printf("gd-demo-8-mesh %s starting on :8080", version)
 	ordersURL := strings.TrimSuffix(os.Getenv("ORDERS_URL"), "/")
+	externalURL := os.Getenv("EXTERNAL_URL")
 	client := &http.Client{Timeout: 3 * time.Second}
 
 	http.HandleFunc("/orders", func(w http.ResponseWriter, r *http.Request) {
@@ -56,6 +58,16 @@ func main() {
 				status, body := call(client, c.method, ordersURL+c.path)
 				printf(w, "  %-4s %-7s  %-3s  %s\n", c.method, c.path, status, body)
 			}
+		}
+
+		if externalURL != "" {
+			printf(w, "\nCall outside the cluster:\n\n")
+			status, body := call(client, http.MethodGet, externalURL)
+			// A web page often fits on one long line: keep this one short.
+			if r := []rune(body); len(r) > 60 {
+				body = string(r[:60]) + "…"
+			}
+			printf(w, "  %-4s %-7s  %-3s  %s\n", http.MethodGet, externalURL, status, body)
 		}
 
 		printf(w, "\nStep 8 of the git-deploy demo: mesh exposures.\n")

@@ -8,6 +8,9 @@ services reachable only inside the cluster, by the applications they list.
 - With `ORDERS_URL` set, its page also calls that orders service
   (`GET /orders`, `POST /orders`, `GET /admin`) and shows what each call got
   back: the status, and the first line of the answer.
+- With `EXTERNAL_URL` set (for example `http://example.com/`), its page also
+  calls that address outside the cluster, to show whether the application may
+  reach the Internet.
 
 The caller is read from the `X-Forwarded-Client-Cert` header. In the mesh, the
 sidecar in front of the application verifies the caller's mTLS certificate and
